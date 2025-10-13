@@ -6,6 +6,7 @@ import type { QuizQuestion, UserAnswer } from '../types';
 interface QuizProps {
   questions: QuizQuestion[];
   onSubmit: (answers: UserAnswer[]) => void;
+  title: string;
 }
 
 // Fisher-Yates shuffle utility
@@ -18,7 +19,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
     return newArray;
 };
 
-const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
+const Quiz: React.FC<QuizProps> = ({ questions, onSubmit, title }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const [direction, setDirection] = useState(1);
@@ -89,13 +90,13 @@ const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
   };
 
   return (
-    <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-300 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl w-full">
+    <div className="bg-light-card/30 dark:bg-dark-card/30 backdrop-blur-xl border border-light-border/50 dark:border-dark-border/50 rounded-2xl p-6 sm:p-8 shadow-2xl w-full">
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-2 text-slate-600 dark:text-slate-300">
-          <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">{t('quizTitle')}</h2>
+        <div className="flex justify-between items-center mb-2 text-light-text/80 dark:text-dark-text/80">
+          <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">{title}</h2>
           <p className="font-semibold">{t('question')} {currentQuestionIndex + 1} {t('of')} {questions.length}</p>
         </div>
-        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+        <div className="w-full bg-light-secondary dark:bg-dark-secondary rounded-full h-2.5">
           <motion.div
             className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2.5 rounded-full"
             initial={{ width: 0 }}
@@ -115,7 +116,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
             animate="center"
             exit="exit"
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute w-full text-lg sm:text-2xl font-semibold text-slate-800 dark:text-white text-center"
+            className="absolute w-full text-lg sm:text-2xl font-semibold text-light-text dark:text-dark-text text-center"
           >
             {questions[currentQuestionIndex].question}
           </motion.h3>
@@ -123,14 +124,14 @@ const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
       </div>
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {shuffledOptions.map((option, index) => (
+        {shuffledOptions.map((option) => (
           <motion.button
-            key={index}
+            key={option.originalIndex}
             onClick={() => handleSelectOption(option.originalIndex)}
-            className={`w-full p-4 rounded-lg text-left transition-all duration-200 border-2 text-slate-800 dark:text-white text-sm sm:text-base ${
+            className={`w-full p-4 rounded-lg text-left transition-all duration-200 border-2 text-light-text dark:text-dark-text text-sm sm:text-base ${
               selectedOption === option.originalIndex
-                ? 'bg-cyan-500 border-cyan-400 text-white font-bold shadow-lg'
-                : 'bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-300/70 dark:hover:bg-slate-600 hover:border-slate-400 dark:hover:border-slate-500'
+                ? 'bg-cyan-500 border-cyan-500 text-white font-bold shadow-lg'
+                : 'bg-light-secondary dark:bg-dark-secondary border-light-border dark:border-dark-border hover:bg-light-border/70 dark:hover:bg-dark-border/70 hover:border-light-border dark:hover:border-dark-border'
             }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -144,7 +145,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
         {currentQuestionIndex > 0 && (
           <button
             onClick={handleBack}
-            className="px-6 py-2 bg-slate-600 text-white font-bold rounded-lg hover:bg-slate-500 transition-colors"
+            className="px-6 py-2 bg-light-secondary dark:bg-dark-secondary text-light-text dark:text-dark-text font-bold rounded-lg hover:bg-light-border dark:hover:bg-dark-border/60 transition-colors"
           >
             {t('back')}
           </button>
@@ -154,7 +155,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
           <button
             onClick={handleNext}
             disabled={selectedOption === undefined}
-            className="px-6 py-2 bg-cyan-500 text-white font-bold rounded-lg hover:bg-cyan-400 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-light-primary dark:bg-dark-primary text-light-primary-text dark:text-dark-primary-text font-bold rounded-lg hover:bg-light-primary-hover dark:hover:dark-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('next')}
           </button>
@@ -162,7 +163,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, onSubmit }) => {
           <button
             onClick={() => onSubmit(userAnswers)}
             disabled={userAnswers.length !== questions.length}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity disabled:bg-slate-600 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:from-slate-500 disabled:to-slate-500 disabled:cursor-not-allowed"
           >
             {t('finish')}
           </button>

@@ -9,7 +9,7 @@ const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="bg-slate-200/50 dark:bg-slate-700/50 backdrop-blur-sm border border-slate-300 dark:border-slate-600 hover:bg-slate-300/70 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold p-2 rounded-lg transition-colors duration-300 flex items-center justify-center w-10 h-10"
+      className="bg-light-secondary dark:bg-dark-secondary hover:bg-light-border dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text font-bold p-2 rounded-full transition-colors duration-300 flex items-center justify-center w-10 h-10"
       aria-label="Toggle theme"
     >
       <AnimatePresence initial={false} mode="wait">
@@ -20,7 +20,7 @@ const ThemeToggle: React.FC = () => {
           exit={{ y: 20, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {theme === 'light' ? <SunIcon className="w-5 h-5 text-yellow-500" /> : <MoonIcon className="w-5 h-5 text-slate-300" />}
+          {theme === 'light' ? <SunIcon className="w-5 h-5 text-yellow-500" /> : <MoonIcon className="w-5 h-5 text-dark-text" />}
         </motion.div>
       </AnimatePresence>
     </button>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="scroll-behavior: smooth;">
+<html lang="ar" dir="rtl" style="scroll-behavior: smooth;">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -9,6 +9,31 @@
     <script>
       tailwind.config = {
         darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    'light-bg': '#f8fafc', // slate-50
+                    'light-text': '#1e293b', // slate-800
+                    'light-card': '#ffffff', // white
+                    'light-border': '#e2e8f0', // slate-200
+                    'light-primary': '#2563eb', // blue-600
+                    'light-primary-hover': '#1d4ed8', // blue-700
+                    'light-primary-text': '#ffffff', // white
+                    'light-secondary': '#f1f5f9', // slate-100
+                    'light-accent': '#ec4899', // pink-500
+                    
+                    'dark-bg': '#020617', // slate-950
+                    'dark-text': '#e2e8f0', // slate-200
+                    'dark-card': '#0f172a', // slate-900
+                    'dark-border': '#334155', // slate-700
+                    'dark-primary': '#38bdf8', // sky-400
+                    'dark-primary-hover': '#0ea5e9', // sky-500
+                    'dark-primary-text': '#020617',
+                    'dark-secondary': '#1e293b', // slate-800
+                    'dark-accent': '#f472b6', // pink-400
+                }
+            }
+        }
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,14 +50,8 @@
   }
 }
 </script>
-<style>
-  :root {
-    --mouse-x: 0px;
-    --mouse-y: 0px;
-  }
-</style>
 </head>
-  <body class="font-['Cairo',_sans-serif] bg-gray-100 dark:bg-slate-900 transition-colors duration-500 overflow-x-hidden">
+  <body class="font-['Cairo',_sans-serif] bg-light-bg dark:bg-dark-bg transition-colors duration-500 overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

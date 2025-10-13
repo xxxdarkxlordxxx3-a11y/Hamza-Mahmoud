@@ -4,10 +4,15 @@ import type { UserAnswer, QuizQuestion } from '../types';
 import { translations } from '../localization/translations';
 import Quiz from './Quiz';
 import QuizResults from './QuizResults';
-import { generateQuizQuestions } from '../services/geminiService';
+import { generateQuizQuestions, generateBudgetingQuizQuestions, generateInvestmentQuizQuestions } from '../services/geminiService';
 import { LoadingIcon } from './IconComponents';
 
-const QuizSection: React.FC = () => {
+interface QuizSectionProps {
+    onDone: () => void;
+    quizType: 'mindset' | 'budgeting' | 'investment';
+}
+
+const QuizSection: React.FC<QuizSectionProps> = ({ onDone, quizType }) => {
     const [quizState, setQuizState] = useState<'idle' | 'active' | 'finished'>('idle');
     const [answers, setAnswers] = useState<UserAnswer[]>([]);
     const { language, t } = useLanguage();
@@ -15,19 +20,40 @@ const QuizSection: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const quizDetails = {
+        mindset: {
+            title: t('mindsetQuizTitle'),
+            intro: t('mindsetQuizDesc'),
+            generator: () => generateQuizQuestions(language)
+        },
+        budgeting: {
+            title: t('budgetingQuizTitle'),
+            intro: t('budgetingQuizDesc'),
+            generator: () => generateBudgetingQuizQuestions(language)
+        },
+        investment: {
+            title: t('investmentQuizTitle'),
+            intro: t('investmentQuizDesc'),
+            generator: () => generateInvestmentQuizQuestions(language)
+        }
+    }[quizType];
+
+
     const handleStart = async () => {
         setIsLoading(true);
         setError(null);
         setAnswers([]);
 
         try {
-            const generatedQuestions = await generateQuizQuestions(language);
+            const generatedQuestions = await quizDetails.generator();
             setQuestions(generatedQuestions);
         } catch (e) {
             console.error(e);
             setError(t('quizGenerationError'));
-            // Use fallback questions if API fails
-            setQuestions(translations[language].quiz);
+            // Use fallback questions if API fails - only for mindset quiz for now
+            if (quizType === 'mindset') {
+                setQuestions(translations[language].quiz);
+            }
         } finally {
             setIsLoading(false);
             setQuizState('active');
@@ -44,38 +70,37 @@ const QuizSection: React.FC = () => {
         setQuestions([]);
         setError(null);
         setQuizState('idle');
-        document.getElementById('quiz')?.scrollIntoView({ behavior: 'smooth' });
     };
 
     return (
-        <section id="quiz" className="py-20 px-4">
-            <div className="max-w-4xl mx-auto">
+        <section id="quiz" className="py-20 px-4 min-h-screen flex items-center justify-center">
+            <div className="container mx-auto max-w-4xl">
                 {quizState === 'idle' && !isLoading && (
                     <div className="text-center">
-                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-800 dark:text-white mb-4">{t('quizTitle')}</h2>
-                        <p className="text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">{t('quizIntro')}</p>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-light-text dark:text-dark-text mb-4">{quizDetails.title}</h2>
+                        <p className="text-lg text-light-text/80 dark:text-dark-text/80 mb-8 max-w-2xl mx-auto">{quizDetails.intro}</p>
                         <button
                             onClick={handleStart}
-                            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full text-lg shadow-lg hover:shadow-purple-500/50 transform transition-all duration-300 hover:scale-105"
+                            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full text-lg shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform transition-all duration-300 hover:-translate-y-1"
                         >
-                            {t('takeTheQuiz')}
+                            {t('startTest')}
                         </button>
                     </div>
                 )}
                 {isLoading && (
                     <div className="text-center flex flex-col items-center justify-center min-h-[200px]">
                         <LoadingIcon />
-                        <p className="text-slate-600 dark:text-slate-300 mt-4 text-lg">{t('generatingQuiz')}</p>
+                        <p className="text-light-text/80 dark:text-dark-text/80 mt-4 text-lg">{t('generatingQuiz')}</p>
                     </div>
                 )}
                 {quizState === 'active' && !isLoading && (
                    <>
                     {error && <p className="text-center text-red-500 mb-4">{error}</p>}
-                    <Quiz questions={questions} onSubmit={handleSubmit} />
+                    <Quiz questions={questions} onSubmit={handleSubmit} title={quizDetails.title} />
                    </>
                 )}
                 {quizState === 'finished' && (
-                    <QuizResults questions={questions} userAnswers={answers} onRetake={handleRetake} />
+                    <QuizResults questions={questions} userAnswers={answers} onRetake={handleRetake} onDone={onDone} />
                 )}
             </div>
         </section>

@@ -26,10 +26,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
       className={`flex items-start gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       <div
-        className={`flex flex-col w-full max-w-[320px] leading-1.5 p-3 border-gray-200 ${
+        className={`flex flex-col w-full max-w-[320px] leading-1.5 p-3 ${
           isUser
-            ? `bg-gradient-to-br from-sky-500 to-blue-600 text-white ${userBubbleClasses}`
-            : `bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white ${modelBubbleClasses}`
+            ? `bg-light-primary dark:bg-dark-primary text-light-primary-text dark:text-dark-primary-text ${userBubbleClasses}`
+            : `bg-light-secondary dark:bg-dark-secondary text-light-text dark:text-dark-text ${modelBubbleClasses}`
         }`}
       >
         <p className={`text-sm font-normal whitespace-pre-wrap ${language === 'ar' ? 'text-right' : 'text-left'}`}>{message.text}</p>
