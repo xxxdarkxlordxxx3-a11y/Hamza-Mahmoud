@@ -1,7 +1,5 @@
 {
   "name": "Rich Mindset: Financial Philosophy Explorer",
-  "description": "An interactive web application exploring the core financial principles from 'Rich Dad Poor Dad' and more books. Features a 20-question quiz to assess your financial mindset, animated educational cards, and an AI financial mentor powered by Gemini to answer your questions.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
+  "description": "An interactive web application for exploring core financial principles. Features financial tools, quizzes to test your knowledge, and educational content to guide you on your journey to financial freedom.",
+  "requestFramePermissions": []
 }

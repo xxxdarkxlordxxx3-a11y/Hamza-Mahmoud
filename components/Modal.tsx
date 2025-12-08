@@ -1,18 +1,21 @@
 import React, { ReactNode } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion as framerMotion, AnimatePresence } from 'framer-motion';
 import { CloseIcon } from './IconComponents';
+
+const motion = framerMotion as any;
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
   title?: string;
+  bodyClassName?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, bodyClassName = "p-6" }) => {
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 640;
 
-  const modalVariants: Variants = {
+  const modalVariants = {
     hidden: {
       opacity: 0,
       scale: 0.9,
@@ -53,7 +56,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 sm:inset-auto sm:top-1/2 sm:left-1/2 w-full h-full sm:w-[90vw] sm:max-w-3xl sm:h-auto sm:max-h-[90vh] bg-light-card/40 dark:bg-dark-card/40 backdrop-blur-xl border border-light-border/50 dark:border-dark-border/50 rounded-none sm:rounded-2xl shadow-2xl flex flex-col z-[70]"
+            className="fixed inset-0 sm:inset-auto sm:top-1/2 sm:left-1/2 w-full h-full sm:w-[90vw] sm:max-w-3xl sm:h-auto sm:max-h-[90vh] bg-light-card/40 dark:bg-dark-card/40 backdrop-blur-xl border border-light-border/50 dark:border-dark-border/50 rounded-none sm:rounded-2xl shadow-2xl flex flex-col z-[70] overflow-hidden"
           >
             <header className="flex items-center justify-between p-4 border-b border-light-border dark:border-dark-border flex-shrink-0">
               {title && <h3 className="text-lg font-bold text-light-text dark:text-dark-text">{title}</h3>}
@@ -61,7 +64,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
                 <CloseIcon />
               </button>
             </header>
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className={`flex-1 overflow-y-auto ${bodyClassName}`}>
               {children}
             </div>
           </motion.div>

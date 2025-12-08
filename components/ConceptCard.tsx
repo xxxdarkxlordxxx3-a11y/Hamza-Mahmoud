@@ -1,6 +1,8 @@
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion as framerMotion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
+
+const motion = framerMotion as any;
 
 interface ConceptCardProps {
   icon: React.ReactNode;
@@ -10,7 +12,7 @@ interface ConceptCardProps {
   index: number;
 }
 
-const cardVariants: Variants = {
+const cardVariants = {
   hidden: (i: number) => {
     const isMobile = window.innerWidth < 768;
     const isRTL = document.documentElement.dir === 'rtl';
@@ -47,13 +49,13 @@ const ConceptCard: React.FC<ConceptCardProps> = ({ icon, title, poorMindset, ric
 
   return (
     <motion.div
-      className="w-full bg-light-card/30 dark:bg-dark-card/30 backdrop-blur-xl border border-light-border/50 dark:border-dark-border/50 rounded-2xl p-6 sm:p-8 shadow-lg relative overflow-hidden group"
+      className="w-full bg-light-card/30 dark:bg-dark-card/30 backdrop-blur-xl border border-light-border/50 dark:border-dark-border/50 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden group"
       variants={cardVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.3 }}
       custom={index}
-      whileHover={{ scale: 1.03, boxShadow: '0 0 30px rgba(37, 99, 235, 0.2)' }}
+      whileHover={{ scale: 1.03, boxShadow: '0 0 35px rgba(37, 99, 235, 0.3)' }}
       transition={{ type: 'spring', stiffness: 300, damping: 15 }}
     >
         <div className="absolute -top-10 ltr:-left-10 rtl:-right-10 text-8xl font-black text-light-secondary dark:text-dark-secondary opacity-50 z-0 select-none">

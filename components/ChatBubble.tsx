@@ -1,7 +1,9 @@
 import React from 'react';
 import type { ChatMessage } from '../types';
-import { motion } from 'framer-motion';
+import { motion as framerMotion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
+
+const motion = framerMotion as any;
 
 interface ChatBubbleProps {
   message: ChatMessage;

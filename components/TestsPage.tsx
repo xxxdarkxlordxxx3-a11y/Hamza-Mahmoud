@@ -1,11 +1,11 @@
+
 import React from 'react';
 import { motion as framerMotion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
-import { BrainIcon, ShieldCheckIcon, CalculatorIcon, AssetIcon } from './IconComponents';
+import { FinancialBrainIcon, CalculatorIcon, AssetIcon, PersonIcon, HazardIcon } from './IconComponents';
+import type { ToolType } from '../types';
 
 const motion = framerMotion as any;
-
-export type ToolType = 'mindset' | 'risk' | 'budgeting' | 'investment' | 'tools';
 
 interface TestsPageProps {
   onStartQuiz: (quizType: ToolType) => void;
@@ -54,22 +54,22 @@ const TestsPage: React.FC<TestsPageProps> = ({ onStartQuiz }) => {
     const { t } = useLanguage();
 
     const quizzes = [
-        { type: 'mindset', title: t('mindsetQuizTitle'), desc: t('mindsetQuizDesc'), icon: <BrainIcon /> },
-        { type: 'risk', title: t('riskAnalysisTitle'), desc: t('riskAnalysisSubtitle'), icon: <ShieldCheckIcon className="w-10 h-10 text-red-400" /> },
-        { type: 'budgeting', title: t('budgetingQuizTitle'), desc: t('budgetingQuizDesc'), icon: <CalculatorIcon className="w-10 h-10 text-blue-400" /> },
-        { type: 'investment', title: t('investmentQuizTitle'), desc: t('investmentQuizDesc'), icon: <AssetIcon /> },
+        { type: 'mindset', title: t('mindsetQuizTitle'), desc: t('mindsetQuizDesc'), icon: <FinancialBrainIcon className="w-12 h-12 text-green-500" /> },
+        { type: 'risk', title: t('riskAnalysisTitle'), desc: t('riskAnalysisDesc'), icon: <HazardIcon className="w-12 h-12 text-red-400" /> },
+        { type: 'budgeting', title: t('budgetingQuizTitle'), desc: t('budgetingQuizDesc'), icon: <CalculatorIcon className="w-12 h-12 text-blue-400" /> },
+        { type: 'investment', title: t('investmentQuizTitle'), desc: t('investmentQuizDesc'), icon: <AssetIcon className="w-12 h-12 text-yellow-500" /> },
     ];
     
     return (
-        <div className="min-h-screen py-20 px-4 flex items-center justify-center bg-light-secondary/30 dark:bg-dark-secondary/30">
-            <div className="container mx-auto max-w-5xl text-center">
+        <div className="w-full py-20 px-4 bg-light-secondary/30 dark:bg-dark-secondary/30">
+            <div className="container mx-auto max-w-7xl text-center">
                  <motion.h2 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                     className="text-3xl sm:text-4xl font-extrabold tracking-tight text-light-text dark:text-dark-text mb-4"
                 >
-                    {t('quizSelectionTitle')}
+                    {t('discoverWealthTitle')}
                 </motion.h2>
                 <motion.p
                      initial={{ opacity: 0, y: -20 }}
@@ -84,7 +84,7 @@ const TestsPage: React.FC<TestsPageProps> = ({ onStartQuiz }) => {
                    {quizzes.map((quiz, index) => (
                        <ToolCard 
                            key={quiz.type}
-                           icon={React.cloneElement(quiz.icon, { className: "w-12 h-12" })}
+                           icon={quiz.icon}
                            title={quiz.title}
                            desc={quiz.desc}
                            onClick={() => onStartQuiz(quiz.type as ToolType)}

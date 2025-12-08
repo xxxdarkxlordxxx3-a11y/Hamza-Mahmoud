@@ -1,28 +1,31 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as framerMotion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
+
+const motion = framerMotion as any;
 
 export interface PortfolioItemData {
     titleKey: string;
-    descKey: string;
     percentage: number;
     color: string;
+    descKey?: string;
+    defKey?: string;
 }
 
 interface InvestmentPortfolioProps {
     data: PortfolioItemData[];
-    onHover: (item: PortfolioItemData | null) => void;
+    onBlockClick?: (item: PortfolioItemData) => void;
 }
 
-const PortfolioBlock: React.FC<{ item: PortfolioItemData, onHover: (item: PortfolioItemData | null) => void }> = ({ item, onHover }) => {
+const PortfolioBlock: React.FC<{ item: PortfolioItemData; onBlockClick?: (item: PortfolioItemData) => void }> = ({ item, onBlockClick }) => {
     const { t } = useLanguage();
     return (
         <motion.div
             className={`relative flex items-center justify-center p-2 text-white font-bold text-lg cursor-pointer overflow-hidden w-full h-full ${item.color}`}
-            onHoverStart={() => onHover(item)}
-            onHoverEnd={() => onHover(null)}
             whileHover={{ scale: 1.05, zIndex: 10 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 300 }}
+            onClick={() => onBlockClick?.(item)}
         >
             <div className="text-center">
                 <p>{t(item.titleKey)}</p>
@@ -32,27 +35,32 @@ const PortfolioBlock: React.FC<{ item: PortfolioItemData, onHover: (item: Portfo
     );
 };
 
-const InvestmentPortfolio: React.FC<InvestmentPortfolioProps> = ({ data, onHover }) => {
-    const [needs, wants, savings] = data; // 50, 30, 20
+const InvestmentPortfolio: React.FC<InvestmentPortfolioProps> = ({ data, onBlockClick }) => {
+    const [needs, wants, savings] = data;
+    const rightSideTotal = wants.percentage + savings.percentage;
+    
+    // Calculate the vertical flex-basis for wants and savings relative to their container
+    const wantsBasis = rightSideTotal > 0 ? (wants.percentage / rightSideTotal) * 100 : 0;
+    const savingsBasis = rightSideTotal > 0 ? (savings.percentage / rightSideTotal) * 100 : 0;
 
     return (
         <div 
-            className="w-full max-w-sm h-72 sm:h-80 mx-auto bg-light-card/60 dark:bg-dark-card/60 p-2 rounded-2xl shadow-lg border border-light-border dark:border-dark-border"
+            className="w-full max-w-sm h-72 sm:h-80 mx-auto bg-light-card/60 dark:bg-dark-card/60 rounded-2xl shadow-lg border border-light-border dark:border-dark-border"
         >
-            <div className="flex w-full h-full rounded-lg overflow-hidden">
-                {/* Left side: 50% */}
-                <div className="flex" style={{ flexBasis: '50%' }}>
-                   <PortfolioBlock item={needs} onHover={onHover} />
+            <div className="flex w-full h-full rounded-2xl overflow-hidden">
+                {/* Left side: Needs */}
+                <div className="flex transition-all duration-500 ease-in-out" style={{ flexBasis: `${needs.percentage}%` }}>
+                   <PortfolioBlock item={needs} onBlockClick={onBlockClick} />
                 </div>
-                {/* Right side: 50% container for 30% and 20% */}
-                <div className="flex flex-col" style={{ flexBasis: '50%' }}>
-                    {/* Wants: 30% of total area = 60% of this container's height */}
-                    <div className="flex" style={{ flexBasis: '60%' }}>
-                         <PortfolioBlock item={wants} onHover={onHover} />
+                {/* Right side: container for Wants and Savings */}
+                <div className="flex flex-col transition-all duration-500 ease-in-out" style={{ flexBasis: `${rightSideTotal}%` }}>
+                    {/* Wants */}
+                    <div className="flex transition-all duration-500 ease-in-out" style={{ flexBasis: `${wantsBasis}%` }}>
+                         <PortfolioBlock item={wants} onBlockClick={onBlockClick} />
                     </div>
-                    {/* Savings: 20% of total area = 40% of this container's height */}
-                    <div className="flex" style={{ flexBasis: '40%' }}>
-                        <PortfolioBlock item={savings} onHover={onHover} />
+                    {/* Savings */}
+                    <div className="flex transition-all duration-500 ease-in-out" style={{ flexBasis: `${savingsBasis}%` }}>
+                        <PortfolioBlock item={savings} onBlockClick={onBlockClick} />
                     </div>
                 </div>
             </div>

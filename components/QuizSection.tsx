@@ -1,107 +1,147 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import type { UserAnswer, QuizQuestion } from '../types';
-import { translations } from '../localization/translations';
+import type { UserAnswer, QuizQuestion, UserContext, QuizAnalysis } from '../types';
 import Quiz from './Quiz';
 import QuizResults from './QuizResults';
-import { generateQuizQuestions, generateBudgetingQuizQuestions, generateInvestmentQuizQuestions } from '../services/geminiService';
-import { LoadingIcon } from './IconComponents';
+import { generateQuizQuestions, generateBudgetingQuizQuestions, generateInvestmentQuizQuestions, analyzeQuizAnswers } from '../services/geminiService';
+import { LoadingIcon, CloseIcon } from './IconComponents';
+import { motion as framerMotion, AnimatePresence } from 'framer-motion';
+
+const motion = framerMotion as any;
 
 interface QuizSectionProps {
     onDone: () => void;
     quizType: 'mindset' | 'budgeting' | 'investment';
+    userContext: UserContext;
 }
 
-const QuizSection: React.FC<QuizSectionProps> = ({ onDone, quizType }) => {
-    const [quizState, setQuizState] = useState<'idle' | 'active' | 'finished'>('idle');
+const QuizSection: React.FC<QuizSectionProps> = ({ onDone, quizType, userContext }) => {
+    const [quizState, setQuizState] = useState<'generating' | 'active' | 'analyzing' | 'finished'>('generating');
     const [answers, setAnswers] = useState<UserAnswer[]>([]);
     const { language, t } = useLanguage();
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [analysisResult, setAnalysisResult] = useState<QuizAnalysis | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showPatienceText, setShowPatienceText] = useState(false);
 
     const quizDetails = {
         mindset: {
             title: t('mindsetQuizTitle'),
-            intro: t('mindsetQuizDesc'),
-            generator: () => generateQuizQuestions(language)
+            generator: () => generateQuizQuestions(language, userContext)
         },
         budgeting: {
             title: t('budgetingQuizTitle'),
-            intro: t('budgetingQuizDesc'),
-            generator: () => generateBudgetingQuizQuestions(language)
+            generator: () => generateBudgetingQuizQuestions(language, userContext)
         },
         investment: {
             title: t('investmentQuizTitle'),
-            intro: t('investmentQuizDesc'),
-            generator: () => generateInvestmentQuizQuestions(language)
+            generator: () => generateInvestmentQuizQuestions(language, userContext)
         }
     }[quizType];
 
-
     const handleStart = async () => {
-        setIsLoading(true);
+        setQuizState('generating');
         setError(null);
         setAnswers([]);
+        setAnalysisResult(null);
 
         try {
             const generatedQuestions = await quizDetails.generator();
             setQuestions(generatedQuestions);
+            setQuizState('active');
         } catch (e) {
             console.error(e);
             setError(t('quizGenerationError'));
-            // Use fallback questions if API fails - only for mindset quiz for now
-            if (quizType === 'mindset') {
-                setQuestions(translations[language].quiz);
-            }
-        } finally {
-            setIsLoading(false);
-            setQuizState('active');
         }
     };
 
-    const handleSubmit = (finalAnswers: UserAnswer[]) => {
+    const handleSubmit = async (finalAnswers: UserAnswer[]) => {
         setAnswers(finalAnswers);
-        setQuizState('finished');
+        setQuizState('analyzing');
+        setError(null);
+        try {
+            // Ensure answers are in a format the analyzer expects (mostly strings/indices)
+            // Complex objects like Matching pairs are handled in the service
+            const result = await analyzeQuizAnswers(questions, finalAnswers, language);
+            setAnalysisResult(result);
+            setQuizState('finished');
+        } catch (e) {
+            console.error("Analysis failed:", e);
+            setError(t('errorOccurred'));
+            // Optionally revert to a state where user can retry analysis
+        }
     };
 
     const handleRetake = () => {
-        setAnswers([]);
-        setQuestions([]);
-        setError(null);
-        setQuizState('idle');
+        handleStart();
     };
 
+    useEffect(() => {
+        handleStart();
+    }, [quizType, language]);
+
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        if (quizState === 'generating') {
+            setShowPatienceText(false);
+            timer = setTimeout(() => {
+                setShowPatienceText(true);
+            }, 3000);
+        }
+        return () => clearTimeout(timer);
+    }, [quizState]);
+
+
+    const renderContent = () => {
+        if (quizState === 'generating') {
+            return (
+                <div className="text-center flex flex-col items-center justify-center min-h-[200px]">
+                    <LoadingIcon />
+                    <AnimatePresence>
+                        {showPatienceText && (
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="text-light-text/80 dark:text-dark-text/80 mt-4 text-lg"
+                            >
+                                {t('patienceIsKey')}
+                            </motion.p>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        }
+        if (quizState === 'analyzing') {
+            return (
+                <div className="text-center flex flex-col items-center justify-center min-h-[200px]">
+                    <LoadingIcon />
+                    <p className="text-light-text/80 dark:text-dark-text/80 mt-4 text-lg">{t('analyzingQuiz')}</p>
+                </div>
+            );
+        }
+        if (error) {
+            return (
+                <div className="text-center min-h-[200px] flex flex-col justify-center items-center">
+                    <p className="text-red-500 mb-4">{error}</p>
+                    <button onClick={handleStart} className="px-6 py-2 bg-light-primary text-light-primary-text rounded-lg">Try Again</button>
+                </div>
+            );
+        }
+        if (quizState === 'active' && questions.length > 0) {
+            return <Quiz questions={questions} onSubmit={handleSubmit} title={quizDetails.title} />;
+        }
+        if (quizState === 'finished' && analysisResult) {
+            return <QuizResults analysis={analysisResult} onRetake={handleRetake} onDone={onDone} />;
+        }
+        return null;
+    }
+
     return (
-        <section id="quiz" className="py-20 px-4 min-h-screen flex items-center justify-center">
-            <div className="container mx-auto max-w-4xl">
-                {quizState === 'idle' && !isLoading && (
-                    <div className="text-center">
-                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-light-text dark:text-dark-text mb-4">{quizDetails.title}</h2>
-                        <p className="text-lg text-light-text/80 dark:text-dark-text/80 mb-8 max-w-2xl mx-auto">{quizDetails.intro}</p>
-                        <button
-                            onClick={handleStart}
-                            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full text-lg shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform transition-all duration-300 hover:-translate-y-1"
-                        >
-                            {t('startTest')}
-                        </button>
-                    </div>
-                )}
-                {isLoading && (
-                    <div className="text-center flex flex-col items-center justify-center min-h-[200px]">
-                        <LoadingIcon />
-                        <p className="text-light-text/80 dark:text-dark-text/80 mt-4 text-lg">{t('generatingQuiz')}</p>
-                    </div>
-                )}
-                {quizState === 'active' && !isLoading && (
-                   <>
-                    {error && <p className="text-center text-red-500 mb-4">{error}</p>}
-                    <Quiz questions={questions} onSubmit={handleSubmit} title={quizDetails.title} />
-                   </>
-                )}
-                {quizState === 'finished' && (
-                    <QuizResults questions={questions} userAnswers={answers} onRetake={handleRetake} onDone={onDone} />
-                )}
+        <section id="quiz" className="py-4 px-2 flex justify-center">
+            <div className="container mx-auto max-w-4xl bg-light-card/30 dark:bg-dark-card/30 backdrop-blur-xl border border-light-border/50 dark:border-dark-border/50 rounded-2xl shadow-2xl relative">
+                {renderContent()}
             </div>
         </section>
     );

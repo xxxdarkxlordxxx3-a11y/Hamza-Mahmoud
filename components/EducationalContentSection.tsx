@@ -1,79 +1,129 @@
+
 import React, { useState } from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion as framerMotion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { translations } from '../localization/translations';
-import { VideoCameraIcon } from './IconComponents';
+import { LearnIcon, PlayIcon, LoadingIcon, GlobeIcon } from './IconComponents';
+import ConceptCard from './ConceptCard';
+import FinancialNewsSection from './FinancialNewsSection';
+import type { UserContext, VideoData } from '../types';
 import Modal from './Modal';
 
-const EducationalContentSection: React.FC = () => {
+const motion = framerMotion as any;
+
+interface EducationalContentSectionProps {
+    userContext: UserContext;
+}
+
+const EducationalContentSection: React.FC<EducationalContentSectionProps> = ({ userContext }) => {
     const { language, t } = useLanguage();
+    const concepts = translations[language].concepts;
     const videos = translations[language].videos;
-    const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+    const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+    const [isIframeLoading, setIframeLoading] = useState(true);
 
-    const cardVariants: Variants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-                delay: i * 0.1,
-                duration: 0.5,
-                ease: "easeOut"
-            }
-        })
+    const handleSelectVideo = (video: VideoData) => {
+        setIframeLoading(true);
+        setSelectedVideo(video);
     };
-    
-    return (
-        <section id="education" className="py-20 px-4">
-             <div className="container mx-auto">
-                <div className="text-center mb-12">
-                     <div className="flex justify-center items-center gap-4 mb-4 text-light-text dark:text-dark-text">
-                        <VideoCameraIcon className="h-8 w-8 text-cyan-500" />
-                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-light-text dark:text-dark-text">{t('educationalContent')}</h2>
-                    </div>
-                    <p className="text-lg text-light-text/80 dark:text-dark-text/80 max-w-3xl mx-auto">{t('educationalContentSubtitle')}</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {videos.map((video, index) => (
-                        <motion.div
-                            key={video.id}
-                            variants={cardVariants}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, amount: 0.3 }}
-                            custom={index}
-                            onClick={() => setSelectedVideoId(video.id)}
-                            className="group cursor-pointer"
-                        >
-                            <div className="relative overflow-hidden rounded-lg shadow-lg">
-                                <img src={video.thumbnail} alt={video.title} className="w-full h-auto transition-transform duration-300 group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                     <svg className="w-16 h-16 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-             </div>
 
-             <Modal isOpen={!!selectedVideoId} onClose={() => setSelectedVideoId(null)}>
-                {selectedVideoId && (
-                    <div className="aspect-video">
-                        <iframe 
-                            className="w-full h-full rounded-lg"
-                            src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1`}
-                            title="YouTube video player" 
-                            frameBorder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowFullScreen>
-                        </iframe>
+    return (
+        <>
+            <section id="education" className="py-20 px-4">
+                 <div className="container mx-auto">
+                    {/* Core Concepts Section */}
+                    <div className="text-center mb-12">
+                         <div className="flex justify-center items-center gap-4 mb-4 text-light-text dark:text-dark-text">
+                            <LearnIcon className="h-8 w-8 text-yellow-500" />
+                            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-light-text dark:text-dark-text">{t('coreConcepts')}</h2>
+                        </div>
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {concepts.map((concept, index) => {
+                            const IconComponent = concept.icon;
+                            return (
+                                <ConceptCard
+                                    key={index}
+                                    index={index}
+                                    icon={<IconComponent />}
+                                    title={concept.title}
+                                    poorMindset={concept.poorMindset}
+                                    richMindset={concept.richMindset}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    {/* Financial News Section */}
+                    <FinancialNewsSection userContext={userContext} />
+
+                    {/* Curated Content (Videos) Section */}
+                    <div className="max-w-5xl mx-auto mt-24">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            {videos.map((video, index) => (
+                                <motion.div
+                                    key={video.id}
+                                    onClick={() => handleSelectVideo(video)}
+                                    className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-cyan-500/30 hover:scale-105"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.5, delay: 0.05 * index }}
+                                >
+                                    <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <PlayIcon className="w-16 h-16 text-white/80 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110" />
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                 </div>
+            </section>
+            
+            {/* Modal for Video Player */}
+            <Modal isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} bodyClassName="p-0 bg-black flex flex-col justify-center items-center h-full relative">
+                {selectedVideo && (
+                    <>
+                        <div className="aspect-video w-full relative bg-black max-h-[80vh]">
+                            <AnimatePresence>
+                                {isIframeLoading && (
+                                    <motion.div
+                                        key="loader"
+                                        initial={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="absolute inset-0 flex items-center justify-center bg-black z-10"
+                                    >
+                                        <LoadingIcon />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                            <iframe
+                                key={selectedVideo.id}
+                                className="absolute inset-0 w-full h-full"
+                                src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${window.location.origin}`}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                onLoad={() => setIframeLoading(false)}
+                            ></iframe>
+                        </div>
+                        <div className="w-full p-4 bg-zinc-900 flex justify-center">
+                            <a 
+                                href={`https://www.youtube.com/watch?v=${selectedVideo.id}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors"
+                            >
+                                <GlobeIcon className="w-5 h-5" />
+                                {language === 'ar' ? 'شاهد على يوتيوب' : 'Watch on YouTube'}
+                            </a>
+                        </div>
+                    </>
                 )}
-             </Modal>
-        </section>
+            </Modal>
+        </>
     );
 };
 

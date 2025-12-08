@@ -1,7 +1,9 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as framerMotion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { SunIcon, MoonIcon } from './IconComponents';
+
+const motion = framerMotion as any;
 
 const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();

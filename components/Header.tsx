@@ -1,35 +1,48 @@
 import React from 'react';
 import ThemeToggle from './ThemeToggle';
 import { useLanguage } from '../context/LanguageContext';
-import { BrainIcon } from './IconComponents';
+import { HomeIcon } from './IconComponents';
 
-const Header: React.FC = () => {
-    const { language, setLanguage, t } = useLanguage();
+interface HeaderProps {
+    onHomeClick: () => void;
+    showHomeIcon?: boolean;
+    hideAllIcons?: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ onHomeClick, showHomeIcon, hideAllIcons }) => {
+    const { language, setLanguage } = useLanguage();
 
     const toggleLanguage = () => {
         const newLang = language === 'en' ? 'ar' : 'en';
         setLanguage(newLang);
     };
 
+    if (hideAllIcons) {
+        return null;
+    }
+
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-light-border dark:border-dark-border bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-sm">
-            <div className="container mx-auto flex h-16 items-center justify-between px-4">
-                <a href="/" className="flex items-center gap-2" aria-label="Go to homepage">
-                    <BrainIcon />
-                    <span className="text-xl font-bold text-light-text dark:text-dark-text">{t('title').split(':')[0]}</span>
-                </a>
-                <div className="flex items-center gap-4">
-                    <ThemeToggle />
+         <div className="fixed top-4 z-50 ltr:right-4 rtl:left-4">
+            <div className="flex flex-row items-center gap-2 p-1.5 bg-light-card/30 dark:bg-dark-card/30 backdrop-blur-xl border border-light-border/80 dark:border-dark-border/80 rounded-full shadow-xl shadow-slate-400/60 dark:shadow-xl dark:shadow-black/30">
+                <button
+                    onClick={toggleLanguage}
+                    className="bg-light-secondary dark:bg-dark-secondary hover:bg-light-border dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text font-bold w-10 h-10 rounded-full transition-colors duration-300 flex items-center justify-center text-lg"
+                    aria-label="Toggle Language"
+                >
+                    {language === 'en' ? 'ع' : 'E'}
+                </button>
+                <ThemeToggle />
+                {showHomeIcon && (
                     <button
-                        onClick={toggleLanguage}
-                        className="bg-light-secondary dark:bg-dark-secondary hover:bg-light-border dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text font-bold py-2 px-4 rounded-lg transition-colors duration-300"
-                        aria-label="Toggle Language"
+                        onClick={onHomeClick}
+                        className="bg-light-secondary dark:bg-dark-secondary hover:bg-light-border dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text font-bold p-2 rounded-full transition-colors duration-300 flex items-center justify-center w-10 h-10"
+                        aria-label="Go to homepage"
                     >
-                        {language === 'en' ? 'العربية' : 'English'}
+                        <HomeIcon className="w-5 h-5" />
                     </button>
-                </div>
+                )}
             </div>
-        </header>
+        </div>
     );
 };
 
